@@ -1,9 +1,7 @@
-import numpy as np
-from tensorflow.keras.layers import Conv2D, Dense, Flatten, Input, MaxPool2D, Concatenate, BatchNormalization
-from tensorflow.keras.models import Model
-from tensorflow.keras.losses import SparseCategoricalCrossentropy
 import matplotlib.pyplot as plt
-import tensorflow as tf
+from tensorflow.keras.layers import Conv2D, Dense, Flatten, Input, MaxPool2D, Concatenate, BatchNormalization, Dropout
+from tensorflow.keras.losses import SparseCategoricalCrossentropy
+from tensorflow.keras.models import Model
 
 from data_loading import DataGenerator
 
@@ -28,6 +26,8 @@ def build_resnet_dexpression_based(input_shape):
     maxpool_4 = featEx_block(maxpool_3, 4)
 
     net = Flatten()(maxpool_4)
+    net = Dense(1024, activation='relu', name='dense1')(net)
+    net = Dropout(0.5)(net)
     net = Dense(7, activation='softmax', name='predictions')(net)
 
     return Model(inputs=inputs, outputs=net, name='deXpression_based')
@@ -44,12 +44,14 @@ def train(input_shape, num_classes, train_datagen, val_datagen, num_epochs=5):
     )
 
     history = model.fit(train_datagen, validation_data=val_datagen, epochs=num_epochs)
-    model.save(filepath='model_dexpression_based.h5')
+    model.save(filepath='model_dexpression_based_4.h5')
 
-    loss = history.history['loss']
+    training_loss = history.history['loss']
+    validation_loss = history.history['val_loss']
 
     plt.figure()
-    plt.plot(history.epoch, loss, 'r', label='Training loss')
+    plt.plot(history.epoch, training_loss, 'r', label='Training loss')
+    plt.plot(history.epoch, validation_loss, 'b--', marker='o', label='Validation loss')
     plt.title('Loss evolution')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
@@ -60,11 +62,9 @@ def train(input_shape, num_classes, train_datagen, val_datagen, num_epochs=5):
 
 
 if __name__ == '__main__':
-    train_generator = DataGenerator("./KDEF/train", 32, (224, 224, 3), 7)
-    print(train_generator.labels)
-    print(len(train_generator.labels))
-    test_generator = DataGenerator("./KDEF/test", 32, (224, 224, 3), 7, 31, 32)
-    print(test_generator.labels)
-    print(len(test_generator.labels))
+    train_generator = DataGenerator('./KDEF/train', 32, (224, 224, 3), 7)
+    test_generator = DataGenerator('./KDEF/test', 32, (224, 224, 3), 7, 31, 36)
 
-    model = train((224, 224, 3), 3, train_generator, test_generator, 5)
+    model = train((224, 224, 3), 3, train_generator, test_generator, 30)
+
+

@@ -1,10 +1,10 @@
 import copy
 import glob
 import os
+
+import cv2
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
-import cv2
 
 
 class DataGenerator(tf.keras.utils.Sequence):
@@ -16,13 +16,13 @@ class DataGenerator(tf.keras.utils.Sequence):
         self.start_number = start_number
         self.end_number = end_number
         self.emotions_map = {
-            'AF': 'fear',
-            'AN': 'anger',
-            'DI': 'disgust',
-            'HA': 'happiness',
-            'NE': 'neutral',
-            'SA': 'sadness',
-            'SU': 'surprise'
+            'AF': 0,
+            'AN': 1,
+            'DI': 2,
+            'HA': 3,
+            'NE': 4,
+            'SA': 5,
+            'SU': 6
 
         }
         # load the data from the root directory
@@ -40,11 +40,10 @@ class DataGenerator(tf.keras.utils.Sequence):
             number = str(index)
             if index < 10:
                 number = "0" + number
-            paths += glob.glob(root_dir + "/AF" + number + "/*.jpg") \
-                     + glob.glob(root_dir + "/AM" + number + "/*.jpg") \
-                     + glob.glob(root_dir + "/BF" + number + "/*.jpg") \
-                     + glob.glob(root_dir + "/BM" + number + "/*.jpg")
-
+            paths += glob.glob(root_dir + "/AF" + number + "/*") \
+                     + glob.glob(root_dir + "/AM" + number + "/*") \
+                     + glob.glob(root_dir + "/BF" + number + "/*") \
+                     + glob.glob(root_dir + "/BM" + number + "/*")
         labels = []
         copy_paths = copy.deepcopy(paths)
         for path in copy_paths:
